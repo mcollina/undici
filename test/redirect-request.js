@@ -6,7 +6,8 @@ const {
   startRedirectingServer,
   startRedirectingWithBodyServer,
   startRedirectingChainServers,
-  startRedirectingWithoutLocationServer
+  startRedirectingWithoutLocationServer,
+  startRedirectingWithAuthorization
 } = require('./utils/redirecting-servers')
 const { createReadable } = require('./utils/stream')
 
@@ -422,4 +423,23 @@ t.test('should handle errors (promise)', async t => {
   } catch (error) {
     t.match(error.code, /EADDRNOTAVAIL|ECONNREFUSED/)
   }
+})
+
+t.test('removes authorization header on third party origin', async t => {
+  t.plan(1)
+
+  const [server1] = await startRedirectingWithAuthorization(t, 'secret')
+  const { body: bodyStream } = await undici.request(`http://${server1}`, {
+    maxRedirections: 10,
+    headers: {
+      authorization: 'secret'
+    }
+  })
+
+  let body = ''
+  for await (const b of bodyStream) {
+    body += b
+  }
+
+  t.equal(body, '')
 })

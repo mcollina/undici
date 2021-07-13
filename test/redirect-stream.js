@@ -6,7 +6,8 @@ const {
   startRedirectingServer,
   startRedirectingWithBodyServer,
   startRedirectingChainServers,
-  startRedirectingWithoutLocationServer
+  startRedirectingWithoutLocationServer,
+  startRedirectingWithAuthorization
 } = require('./utils/redirecting-servers')
 const { createReadable, createWritable } = require('./utils/stream')
 
@@ -357,4 +358,21 @@ t.test('should handle errors', async t => {
     t.match(error.code, /EADDRNOTAVAIL|ECONNREFUSED/)
     t.equal(body.length, 0)
   }
+})
+
+t.test('removes authorization header on third party origin', async t => {
+  t.plan(1)
+
+  const body = []
+
+  const [server1] = await startRedirectingWithAuthorization(t, 'secret')
+  await stream(`http://${server1}`, {
+    maxRedirections: 10,
+    opaque: body,
+    headers: {
+      authorization: 'secret'
+    }
+  }, ({ statusCode, headers, opaque }) => createWritable(opaque))
+
+  t.equal(body.length, 0)
 })

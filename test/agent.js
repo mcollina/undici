@@ -652,3 +652,11 @@ test('global api throws', t => {
   t.throws(() => request(1), InvalidArgumentError)
   t.end()
 })
+
+test('unreachable request rejects and can be caught', t => {
+  t.plan(1)
+
+  request('https://thisis.not/avalid/url').catch(() => {
+    t.pass()
+  })
+})

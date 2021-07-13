@@ -152,10 +152,34 @@ async function startRedirectingChainServers (t) {
   return [server1, server2, server3]
 }
 
+async function startRedirectingWithAuthorization (t, authorization) {
+  const server1 = await startServer(t, (req, res) => {
+    if (req.headers.authorization !== authorization) {
+      res.statusCode = 403
+      res.setHeader('Connection', 'close')
+      res.end('')
+      return
+    }
+
+    res.statusCode = 301
+    res.setHeader('Connection', 'close')
+
+    res.setHeader('Location', `http://${server2}`)
+    res.end('')
+  })
+
+  const server2 = await startServer(t, (req, res) => {
+    res.end(req.headers.authorization || '')
+  })
+
+  return [server1, server2]
+}
+
 module.exports = {
   startServer,
   startRedirectingServer,
   startRedirectingWithBodyServer,
   startRedirectingWithoutLocationServer,
-  startRedirectingChainServers
+  startRedirectingChainServers,
+  startRedirectingWithAuthorization
 }
