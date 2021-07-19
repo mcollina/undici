@@ -371,6 +371,22 @@ for (const factory of [
     t.equal(headers.location, `http://${server}/301/1`)
     t.equal(body.length, 0)
   })
+
+  t.test('redirect method rewrite', async t => {
+    const server = await startRedirectingServer(t)
+
+    const dispatcher = factory(server, {
+      maxRedirections: 10
+    })
+
+    dispatcher.dispatch({
+      onRedirect (opts) {
+        opts.method = 'GET'
+      }
+    })
+
+    // TODO
+  })
 }
 
 t.test('should follow redirections when going cross origin', async t => {
