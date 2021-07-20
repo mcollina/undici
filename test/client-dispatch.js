@@ -18,7 +18,7 @@ test('dispatch invalid opts', (t) => {
     }, null)
   } catch (err) {
     t.type(err, errors.InvalidArgumentError)
-    t.equal(err.message, 'handler')
+    t.equal(err.message, 'handler must be an object')
   }
 
   try {
@@ -29,7 +29,7 @@ test('dispatch invalid opts', (t) => {
     }, 'asd')
   } catch (err) {
     t.type(err, errors.InvalidArgumentError)
-    t.equal(err.message, 'handler')
+    t.equal(err.message, 'handler must be an object')
   }
 
   client.dispatch({

@@ -92,7 +92,7 @@ test('MockAgent - get', t => {
 })
 
 test('MockAgent - dispatch', t => {
-  t.plan(2)
+  t.plan(3)
 
   t.test('should call the dispatch method of the MockPool', (t) => {
     t.plan(1)
@@ -116,7 +116,8 @@ test('MockAgent - dispatch', t => {
     }, {
       onHeaders: (_statusCode, _headers, resume) => resume(),
       onData: () => {},
-      onComplete: () => {}
+      onComplete: () => {},
+      onError: () => {}
     }))
   })
 
@@ -142,8 +143,92 @@ test('MockAgent - dispatch', t => {
     }, {
       onHeaders: (_statusCode, _headers, resume) => resume(),
       onData: () => {},
-      onComplete: () => {}
+      onComplete: () => {},
+      onError: () => {}
     }))
+  })
+
+  t.test('should throw if handler is not valid on redirect', (t) => {
+    t.plan(7)
+
+    const baseUrl = 'http://localhost:9999'
+
+    const mockAgent = new MockAgent()
+    t.teardown(mockAgent.close.bind(mockAgent))
+
+    t.throws(() => mockAgent.dispatch({
+      origin: baseUrl,
+      path: '/foo',
+      method: 'GET'
+    }, {
+      onError: 'INVALID'
+    }), new InvalidArgumentError('invalid onError method'))
+
+    t.throws(() => mockAgent.dispatch({
+      origin: baseUrl,
+      path: '/foo',
+      method: 'GET'
+    }, {
+      onError: (err) => { throw err },
+      onConnect: 'INVALID'
+    }), new InvalidArgumentError('invalid onConnect method'))
+
+    t.throws(() => mockAgent.dispatch({
+      origin: baseUrl,
+      path: '/foo',
+      method: 'GET'
+    }, {
+      onError: (err) => { throw err },
+      onConnect: () => {},
+      onBodySent: 'INVALID'
+    }), new InvalidArgumentError('invalid onBodySent method'))
+
+    t.throws(() => mockAgent.dispatch({
+      origin: baseUrl,
+      path: '/foo',
+      method: 'CONNECT'
+    }, {
+      onError: (err) => { throw err },
+      onConnect: () => {},
+      onBodySent: () => {},
+      onUpgrade: 'INVALID'
+    }), new InvalidArgumentError('invalid onUpgrade method'))
+
+    t.throws(() => mockAgent.dispatch({
+      origin: baseUrl,
+      path: '/foo',
+      method: 'GET'
+    }, {
+      onError: (err) => { throw err },
+      onConnect: () => {},
+      onBodySent: () => {},
+      onHeaders: 'INVALID'
+    }), new InvalidArgumentError('invalid onHeaders method'))
+
+    t.throws(() => mockAgent.dispatch({
+      origin: baseUrl,
+      path: '/foo',
+      method: 'GET'
+    }, {
+      onError: (err) => { throw err },
+      onConnect: () => {},
+      onBodySent: () => {},
+      onHeaders: () => {},
+      onData: 'INVALID'
+    }), new InvalidArgumentError('invalid onData method'))
+
+    t.throws(() => mockAgent.dispatch({
+      origin: baseUrl,
+      path: '/foo',
+      method: 'GET'
+    }, {
+      onError: (err) => { throw err },
+      onConnect: () => {},
+      onBodySent: () => {},
+      onHeaders: () => {},
+      onData: () => {},
+      onComplete: 'INVALID'
+    }), new InvalidArgumentError('invalid onComplete method'))
   })
 })
 
