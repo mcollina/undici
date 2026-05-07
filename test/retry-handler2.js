@@ -1722,23 +1722,27 @@ test('Should use retry-after header for retries (date) but date format is wrong 
       throwOnError: false
     }
   }
+  const minRetryDelay = dispatchOptions.retryOptions.minTimeout
 
   server.on('request', (req, res) => {
     switch (counter) {
-      case 0:
-        checkpoint = Date.now()
+      case 0: {
+        checkpoint = process.hrtime.bigint()
         res.writeHead(429, {
           'retry-after': 'this is not a date'
         })
         res.end('rate limit')
         counter++
         return
-      case 1:
+      }
+      case 1: {
         res.writeHead(200)
         res.end('hello world!')
-        t.ok(Date.now() - checkpoint >= 1000)
+        const elapsedMs = Number(process.hrtime.bigint() - checkpoint) / 1e6
+        t.ok(elapsedMs >= minRetryDelay - 100)
         counter++
         return
+      }
       default:
         t.fail('unexpected request')
     }
